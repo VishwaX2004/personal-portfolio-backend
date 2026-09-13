@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import UserRouter from "./routes/userRoutes.js";
 
 
 dotenv.config();
@@ -46,6 +47,7 @@ app.use(
   authRoutes
 );
 
+app.use("/api/users", UserRouter);
 
 /* Health Check */
 
