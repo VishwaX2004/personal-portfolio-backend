@@ -2,7 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import userRouter from './routes/userRouter.js';
 import jwt from 'jsonwebtoken';
-import productRouter from './routes/productRouter.js';
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -49,7 +48,7 @@ mongoose.connect(connectionString).then(
 )
 
 app.use("/api/users", userRouter);
-app.use("/api/products",productRouter);
+
 
 app.listen(5000, () => {
     console.log('Server is running on port 5000');
