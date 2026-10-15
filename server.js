@@ -8,6 +8,7 @@ import projectRoutes from "./routes/projectRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import UserRouter from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 
 dotenv.config();
@@ -48,6 +49,8 @@ app.use(
 );
 
 app.use("/api/users", UserRouter);
+
+app.use("/api/admin", adminRoutes);
 
 /* Health Check */
 
