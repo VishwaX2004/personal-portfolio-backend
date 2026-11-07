@@ -3,6 +3,7 @@ import { adminLogin } from '../controllers/adminAuthController.js';
 import { protectAdmin } from '../middleware/adminMiddleware.js';
 import { getProjects, createProject, updateProject, deleteProject } from '../controllers/adminProjectController.js';
 import { getEducation, createEducation, updateEducation, deleteEducation } from '../controllers/adminEducationController.js';
+import { getMessages, deleteMessage } from '../controllers/messageController.js';
 
 const router = express.Router();
 
@@ -23,5 +24,9 @@ router.get('/education', getEducation);
 router.post('/education', createEducation);
 router.put('/education/:id', updateEducation);
 router.delete('/education/:id', deleteEducation);
+
+// Message routes
+router.get('/messages', getMessages);
+router.delete('/messages/:id', deleteMessage);
 
 export default router;
