@@ -2,23 +2,18 @@ import Project from "../models/projects.js";
 
 
 export const getProjects = async (req, res) => {
-
   try {
-
+    // Filter to show only completed projects on the public endpoint
     const projects = await Project
-      .find()
+      .find({ status: "completed" })
       .sort({ createdAt: -1 });
 
     res.json(projects);
-
   } catch (error) {
-
     res.status(500).json({
       message: error.message,
     });
-
   }
-
 };
 
 

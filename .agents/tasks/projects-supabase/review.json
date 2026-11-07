@@ -1,0 +1,22 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "issue": "Link click prevention breaks navigation",
+      "description": "ProjectCard uses preventDefault() on GitHub and Live Demo anchor tags, preventing their href attributes from working. Users see the buttons but clicking does nothing."
+    },
+    {
+      "issue": "Preview cleanup bug on upload",
+      "description": "After uploading, the SupabaseUploader component uses incorrect array slice logic (slice(-previewUrls.length + selectedFiles.length)) that leaves blob URLs in memory instead of clearing them, causing resource leaks on form reuse."
+    },
+    {
+      "issue": "No image reachability validation",
+      "description": "The backend accepts any non-empty URL string without verifying the image exists or is accessible. Invalid URLs will be stored and fail silently on the frontend."
+    },
+    {
+      "issue": "Admin cannot remove images during edit",
+      "description": "The edit form only allows adding more images to existing projects; users cannot remove images, requiring backend or database fixes for corrections."
+    }
+  ],
+  "reviewDoc": "d:\\Devlopment\\portfolio\\backend\\.agents\\tasks\\projects-supabase\\review.md"
+}

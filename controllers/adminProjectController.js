@@ -1,5 +1,29 @@
 import Project from '../models/projects.js';
 
+// Helper function to validate image URL reachability
+const validateImageUrl = async (url) => {
+  try {
+    const response = await fetch(url, { method: 'HEAD', timeout: 5000 });
+    return response.ok;
+  } catch (error) {
+    console.error(`Image validation error for ${url}:`, error);
+    return false;
+  }
+};
+
+// Helper function to validate all image URLs
+const validateAllImageUrls = async (images) => {
+  const results = await Promise.all(
+    images.map(async (url) => {
+      const isValid = await validateImageUrl(url);
+      return { url, isValid };
+    })
+  );
+  
+  const invalidUrls = results.filter(result => !result.isValid).map(result => result.url);
+  return invalidUrls;
+};
+
 export const getProjects = async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
@@ -36,6 +60,15 @@ export const createProject = async (req, res) => {
       if (invalidImages.length > 0) {
         return res.status(400).json({ 
           message: 'All image URLs must be non-empty strings' 
+        });
+      }
+
+      // Validate image URLs are reachable
+      const unreachableUrls = await validateAllImageUrls(images);
+      if (unreachableUrls.length > 0) {
+        return res.status(400).json({
+          message: 'Some image URLs are not reachable or invalid',
+          unreachableUrls
         });
       }
     }
@@ -89,6 +122,15 @@ export const updateProject = async (req, res) => {
         if (invalidImages.length > 0) {
           return res.status(400).json({ 
             message: 'All image URLs must be non-empty strings' 
+          });
+        }
+
+        // Validate image URLs are reachable
+        const unreachableUrls = await validateAllImageUrls(images);
+        if (unreachableUrls.length > 0) {
+          return res.status(400).json({
+            message: 'Some image URLs are not reachable or invalid',
+            unreachableUrls
           });
         }
       }
