@@ -13,6 +13,7 @@ import UserRouter from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import { getQualifications } from "./controllers/qualificationController.js";
+import { getQualifications } from "./controllers/qualificationController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,6 +67,9 @@ app.use("/api/users", UserRouter);
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/upload", uploadRoutes);
+
+// Public qualifications endpoint (education and certificates for portfolio display)
+app.get("/api/qualifications", getQualifications);
 
 /* Public API Routes */
 
