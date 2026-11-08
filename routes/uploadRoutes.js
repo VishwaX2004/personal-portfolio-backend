@@ -28,4 +28,10 @@ router.post('/image', protectAdmin, upload.single('file'), uploadImage);
 // Upload multiple images (protected - admin only)
 router.post('/images', protectAdmin, upload.array('files', 10), uploadMultipleImages);
 
+// Upload institute logo (single image) - for education entries
+router.post('/logo', protectAdmin, upload.single('file'), uploadImage);
+
+// Upload certification images (multiple images) - for certificate entries
+router.post('/certifications', protectAdmin, upload.array('files', 10), uploadMultipleImages);
+
 export default router;

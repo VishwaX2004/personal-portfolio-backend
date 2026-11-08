@@ -12,6 +12,7 @@ const qualificationSchema = new mongoose.Schema({
   degree: String,
   field: String,
   educationDescription: String,
+  logoUrl: String, // Institute logo URL (single image for education)
   
   // Certificate fields
   certificateName: String,
@@ -22,6 +23,7 @@ const qualificationSchema = new mongoose.Schema({
   credentialUrl: String,
   certificateImage: String,
   certificateDescription: String,
+  certificateImages: [String], // Array of certificate image URLs (multiple images)
   
   // Common fields
   startYear: Number,
