@@ -1,0 +1,14 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "issue": "Image cleanup on deletion not implemented",
+      "description": "When projects or qualifications are deleted, their Supabase images are left orphaned. No deletion endpoint exists. Supabase storage will accumulate stale files over time, incurring unnecessary costs."
+    },
+    {
+      "issue": "Bucket existence and permissions not validated",
+      "description": "checkSupabaseConfig() validates env vars are present but does not test bucket readability/accessibility. Upload failures due to invalid bucket name or permission denials will surface as 500 errors with raw Supabase messages, not as clear 503 config errors. A test upload on startup would make this obvious immediately."
+    }
+  ],
+  "reviewDoc": "d:\\Devlopment\\portfolio\\backend\\.agents\\tasks\\supabase-migration\\review.md"
+}
