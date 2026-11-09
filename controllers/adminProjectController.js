@@ -1,65 +1,4 @@
 import Project from '../models/projects.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const uploadsDir = path.join(__dirname, '../uploads');
-
-// Helper function to delete a file from disk
-const deleteFile = (filePath) => {
-  try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      console.log(`File deleted: ${filePath}`);
-    }
-  } catch (error) {
-    console.warn(`Failed to delete file ${filePath}:`, error.message);
-  }
-};
-
-// Helper function to extract filename from URL
-const extractFilenameFromUrl = (url) => {
-  try {
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    return path.basename(pathname);
-  } catch {
-    return null;
-  }
-};
-
-// Helper function to validate image URL reachability
-const validateImageUrl = async (url) => {
-  try {
-    // For local URLs, just check if they're in the right format
-    if (url.startsWith('http://localhost:5000/uploads/')) {
-      return true;
-    }
-    
-    // For external URLs, skip validation to avoid network issues
-    console.warn(`Skipping validation for URL: ${url}`);
-    return true;
-  } catch (error) {
-    console.warn(`Image validation skipped: ${error.message}`);
-    return true;
-  }
-};
-
-// Helper function to validate all image URLs
-const validateAllImageUrls = async (images) => {
-  if (!images || images.length === 0) return [];
-  
-  const results = await Promise.all(
-    images.map(async (url) => {
-      const isValid = await validateImageUrl(url);
-      return { url, isValid };
-    })
-  );
-  
-  const invalidUrls = results.filter(result => !result.isValid).map(result => result.url);
-  return invalidUrls;
-};
 
 export const getProjects = async (req, res) => {
   try {
@@ -100,13 +39,6 @@ export const createProject = async (req, res) => {
         return res.status(400).json({ 
           message: 'All image URLs must be non-empty strings' 
         });
-      }
-
-      // Validate image URLs (with lenient error handling)
-      const unreachableUrls = await validateAllImageUrls(images);
-      // Only warn about unreachable URLs, don't fail
-      if (unreachableUrls.length > 0) {
-        console.warn('Some image URLs might be unreachable:', unreachableUrls);
       }
 
       // Validate coverImage if provided
@@ -184,30 +116,12 @@ export const updateProject = async (req, res) => {
           });
         }
 
-        // Validate image URLs (with lenient error handling)
-        const unreachableUrls = await validateAllImageUrls(images);
-        if (unreachableUrls.length > 0) {
-          console.warn('Some image URLs might be unreachable:', unreachableUrls);
-        }
-
         // Validate coverImage if provided
         if (coverImage && !images.includes(coverImage)) {
           return res.status(400).json({ 
             message: 'coverImage must be one of the provided images' 
           });
         }
-
-        // Delete files that were in old project but not in new images
-        const oldImages = oldProject.images || [];
-        const removedImages = oldImages.filter(url => !images.includes(url));
-        
-        removedImages.forEach(url => {
-          const filename = extractFilenameFromUrl(url);
-          if (filename) {
-            const filePath = path.join(uploadsDir, filename);
-            deleteFile(filePath);
-          }
-        });
       }
     }
 
@@ -255,17 +169,6 @@ export const deleteProject = async (req, res) => {
     
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
-    }
-
-    // Delete associated image files from disk
-    if (project.images && project.images.length > 0) {
-      project.images.forEach(url => {
-        const filename = extractFilenameFromUrl(url);
-        if (filename) {
-          const filePath = path.join(uploadsDir, filename);
-          deleteFile(filePath);
-        }
-      });
     }
 
     res.status(200).json({ message: 'Project deleted successfully', deletedCount: 1 });

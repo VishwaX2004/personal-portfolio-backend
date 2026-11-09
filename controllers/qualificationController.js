@@ -1,30 +1,4 @@
 import Qualification from '../models/qualification.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, '../uploads');
-
-// Helper to delete file from disk
-const deleteFile = (filePath) => {
-  try {
-    // If filePath is a full URL, extract the filename
-    let fileName = filePath;
-    if (filePath.includes('/')) {
-      fileName = filePath.split('/').pop();
-    }
-    
-    const fullPath = path.join(uploadsDir, fileName);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-      console.log(`Deleted file: ${fullPath}`);
-    }
-  } catch (error) {
-    console.error(`Error deleting file ${filePath}:`, error);
-  }
-};
 
 export const getQualifications = async (req, res) => {
   try {
@@ -96,30 +70,10 @@ export const updateQualification = async (req, res) => {
     const { id } = req.params;
     const { type, logoUrl, certificateImages, ...data } = req.body;
 
-    // Fetch old record to check for files to delete
+    // Fetch old record
     const oldQualification = await Qualification.findById(id);
     if (!oldQualification) {
       return res.status(404).json({ message: 'Qualification not found' });
-    }
-
-    // Handle logoUrl cleanup (education only)
-    if (type === 'education' && logoUrl !== undefined) {
-      if (oldQualification.logoUrl && oldQualification.logoUrl !== logoUrl) {
-        deleteFile(oldQualification.logoUrl);
-      }
-    }
-
-    // Handle certificateImages cleanup (certificate only)
-    if (type === 'certificate' && certificateImages !== undefined) {
-      if (Array.isArray(oldQualification.certificateImages)) {
-        // Delete images that are no longer in the new array
-        const newImages = certificateImages || [];
-        oldQualification.certificateImages.forEach(oldImg => {
-          if (!newImages.includes(oldImg)) {
-            deleteFile(oldImg);
-          }
-        });
-      }
     }
 
     // Validate logoUrl if provided
@@ -164,18 +118,6 @@ export const deleteQualification = async (req, res) => {
 
     if (!qualification) {
       return res.status(404).json({ message: 'Qualification not found' });
-    }
-
-    // Delete logoUrl file if exists (education)
-    if (qualification.logoUrl) {
-      deleteFile(qualification.logoUrl);
-    }
-
-    // Delete all certificateImages if exist (certificate)
-    if (Array.isArray(qualification.certificateImages)) {
-      qualification.certificateImages.forEach(imgPath => {
-        deleteFile(imgPath);
-      });
     }
 
     res.status(200).json({ message: 'Qualification deleted successfully' });
