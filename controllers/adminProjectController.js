@@ -257,6 +257,17 @@ export const deleteProject = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    // Delete associated image files from disk
+    if (project.images && project.images.length > 0) {
+      project.images.forEach(url => {
+        const filename = extractFilenameFromUrl(url);
+        if (filename) {
+          const filePath = path.join(uploadsDir, filename);
+          deleteFile(filePath);
+        }
+      });
+    }
+
     res.status(200).json({ message: 'Project deleted successfully', deletedCount: 1 });
   } catch (error) {
     console.error('Delete project error:', error);
