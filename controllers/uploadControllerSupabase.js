@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { randomBytes } from 'crypto';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -6,29 +7,58 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseBucket = process.env.SUPABASE_BUCKET;
 
 // Log warnings if environment variables are missing
-if (!supabaseUrl || !supabaseAnonKey || !supabaseBucket) {
+const missingVars = [];
+if (!supabaseUrl) missingVars.push('SUPABASE_URL');
+if (!supabaseAnonKey) missingVars.push('SUPABASE_ANON_KEY');
+if (!supabaseBucket) missingVars.push('SUPABASE_BUCKET');
+
+if (missingVars.length > 0) {
   console.warn('⚠️  Supabase environment variables not fully configured:');
-  if (!supabaseUrl) console.warn('   - SUPABASE_URL is missing');
-  if (!supabaseAnonKey) console.warn('   - SUPABASE_ANON_KEY is missing');
-  if (!supabaseBucket) console.warn('   - SUPABASE_BUCKET is missing');
+  missingVars.forEach(v => console.warn(`   - ${v} is missing`));
   console.warn('   Upload endpoints will fail until these are set in .env');
 }
 
-const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+// Initialize client only if credentials are present, otherwise set to null
+let supabase = null;
+if (supabaseUrl && supabaseAnonKey) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+}
 
-// Helper to generate unique filename
+// Helper to check if Supabase is properly configured
+const checkSupabaseConfig = () => {
+  if (!supabase || !supabaseBucket) {
+    return {
+      configured: false,
+      missing: []
+        .concat(!supabase ? ['SUPABASE_URL or SUPABASE_ANON_KEY'] : [])
+        .concat(!supabaseBucket ? ['SUPABASE_BUCKET'] : [])
+    };
+  }
+  return { configured: true, missing: [] };
+};
+
+// Helper to generate unique filename with high collision resistance
 const generateUniqueFilename = (originalName) => {
   const timestamp = Date.now();
-  const randomString = Math.random().toString(36).substring(2, 10);
+  const randomHex = randomBytes(8).toString('hex');
   const cleanFileName = originalName
     .replace(/[^a-zA-Z0-9.-]/g, '_')
     .toLowerCase();
   
-  return `${timestamp}-${randomString}-${cleanFileName}`;
+  return `${timestamp}-${randomHex}-${cleanFileName}`;
 };
 
 export const uploadImage = async (req, res) => {
   try {
+    // Check Supabase configuration
+    const configCheck = checkSupabaseConfig();
+    if (!configCheck.configured) {
+      return res.status(503).json({ 
+        message: 'Supabase storage is not configured',
+        missing: configCheck.missing
+      });
+    }
+
     // Check if file exists in request
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -100,6 +130,15 @@ export const uploadImage = async (req, res) => {
 
 export const uploadMultipleImages = async (req, res) => {
   try {
+    // Check Supabase configuration
+    const configCheck = checkSupabaseConfig();
+    if (!configCheck.configured) {
+      return res.status(503).json({ 
+        message: 'Supabase storage is not configured',
+        missing: configCheck.missing
+      });
+    }
+
     // Check if files exist in request
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
