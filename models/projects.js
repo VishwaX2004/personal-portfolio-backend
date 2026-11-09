@@ -95,7 +95,7 @@ const projectSchema = new mongoose.Schema(
 
 // Pre-save hook to set coverImage automatically from images array
 projectSchema.pre("save", async function () {
-  if (this.images && this.images.length > 0) {
+  if (this.images && this.images.length > 0 && !this.coverImage) {
     this.coverImage = this.images[0];
   }
 });
@@ -103,7 +103,7 @@ projectSchema.pre("save", async function () {
 // Pre-findByIdAndUpdate hook to set coverImage automatically
 projectSchema.pre("findByIdAndUpdate", async function () {
   const update = this.getUpdate();
-  if (update && update.images && update.images.length > 0) {
+  if (update && update.images && update.images.length > 0 && !update.coverImage) {
     update.coverImage = update.images[0];
   }
 });

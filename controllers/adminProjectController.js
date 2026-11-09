@@ -1,4 +1,33 @@
 import Project from '../models/projects.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadsDir = path.join(__dirname, '../uploads');
+
+// Helper function to delete a file from disk
+const deleteFile = (filePath) => {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`File deleted: ${filePath}`);
+    }
+  } catch (error) {
+    console.warn(`Failed to delete file ${filePath}:`, error.message);
+  }
+};
+
+// Helper function to extract filename from URL
+const extractFilenameFromUrl = (url) => {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    return path.basename(pathname);
+  } catch {
+    return null;
+  }
+};
 
 // Helper function to validate image URL reachability
 const validateImageUrl = async (url) => {
@@ -44,9 +73,9 @@ export const getProjects = async (req, res) => {
 
 export const createProject = async (req, res) => {
   try {
-    const { title, slug, description, images = [], ...rest } = req.body;
+    const { title, slug, description, images = [], coverImage, ...rest } = req.body;
 
-    console.log('Creating project with data:', { title, slug, description, imagesCount: images.length });
+    console.log('Creating project with data:', { title, slug, description, imagesCount: images.length, coverImage });
 
     // Validate required fields
     if (!title || !slug || !description) {
@@ -79,6 +108,13 @@ export const createProject = async (req, res) => {
       if (unreachableUrls.length > 0) {
         console.warn('Some image URLs might be unreachable:', unreachableUrls);
       }
+
+      // Validate coverImage if provided
+      if (coverImage && !images.includes(coverImage)) {
+        return res.status(400).json({ 
+          message: 'coverImage must be one of the provided images' 
+        });
+      }
     }
 
     const projectData = {
@@ -88,6 +124,11 @@ export const createProject = async (req, res) => {
       images,
       ...rest,
     };
+
+    // Only add coverImage if explicitly provided
+    if (coverImage) {
+      projectData.coverImage = coverImage;
+    }
 
     console.log('Project data to save:', projectData);
 
@@ -117,7 +158,13 @@ export const createProject = async (req, res) => {
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { images = undefined, ...rest } = req.body;
+    const { images = undefined, coverImage, ...rest } = req.body;
+
+    // Get the old project to find removed images
+    const oldProject = await Project.findById(id);
+    if (!oldProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
 
     // Validate images if provided
     if (images !== undefined) {
@@ -142,12 +189,36 @@ export const updateProject = async (req, res) => {
         if (unreachableUrls.length > 0) {
           console.warn('Some image URLs might be unreachable:', unreachableUrls);
         }
+
+        // Validate coverImage if provided
+        if (coverImage && !images.includes(coverImage)) {
+          return res.status(400).json({ 
+            message: 'coverImage must be one of the provided images' 
+          });
+        }
+
+        // Delete files that were in old project but not in new images
+        const oldImages = oldProject.images || [];
+        const removedImages = oldImages.filter(url => !images.includes(url));
+        
+        removedImages.forEach(url => {
+          const filename = extractFilenameFromUrl(url);
+          if (filename) {
+            const filePath = path.join(uploadsDir, filename);
+            deleteFile(filePath);
+          }
+        });
       }
     }
 
     const updateData = images !== undefined 
       ? { ...rest, images } 
       : rest;
+
+    // Add coverImage if provided
+    if (coverImage) {
+      updateData.coverImage = coverImage;
+    }
 
     const project = await Project.findByIdAndUpdate(
       id, 
