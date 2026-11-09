@@ -27,7 +27,7 @@ export const createEducation = async (req, res) => {
 export const updateEducation = async (req, res) => {
   try {
     const { id } = req.params;
-    const education = await Education.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    const education = await Education.findByIdAndUpdate(id, req.body, { returnDocument: 'after', runValidators: true });
     
     if (!education) {
       return res.status(404).json({ message: 'Education not found' });

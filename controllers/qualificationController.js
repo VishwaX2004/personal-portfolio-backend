@@ -147,7 +147,7 @@ export const updateQualification = async (req, res) => {
     const qualification = await Qualification.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     res.status(200).json(qualification);
