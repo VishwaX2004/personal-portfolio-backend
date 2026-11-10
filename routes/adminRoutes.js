@@ -4,7 +4,7 @@ import { protectAdmin } from '../middleware/adminMiddleware.js';
 import { getProjects, createProject, updateProject, deleteProject } from '../controllers/adminProjectController.js';
 import { getEducation, createEducation, updateEducation, deleteEducation } from '../controllers/adminEducationController.js';
 import { getQualifications, createQualification, updateQualification, deleteQualification } from '../controllers/qualificationController.js';
-import { getMessages, deleteMessage } from '../controllers/messageController.js';
+import { getMessages, deleteMessage, markAsRead } from '../controllers/messageController.js';
 
 const router = express.Router();
 
@@ -34,6 +34,7 @@ router.delete('/qualifications/:id', deleteQualification);
 
 // Message routes
 router.get('/messages', getMessages);
+router.put('/messages/:id', markAsRead);
 router.delete('/messages/:id', deleteMessage);
 
 export default router;

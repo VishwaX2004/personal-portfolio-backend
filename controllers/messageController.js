@@ -1,5 +1,5 @@
 import Message from "../models/message.js";
-
+import { sendContactEmail } from "../services/emailService.js";
 
 export const createMessage = async (
   req,
@@ -38,6 +38,18 @@ export const createMessage = async (
         message,
       });
 
+    // Send email to admin (non-blocking)
+    try {
+      await sendContactEmail(
+        name,
+        email,
+        subject,
+        message
+      );
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      // Don't fail the request if email fails
+    }
 
     res.status(201).json({
       message:
@@ -94,6 +106,38 @@ export const deleteMessage = async (
     res.json({
       message: "Message deleted",
     });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
+
+export const markAsRead = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const message = await Message.findByIdAndUpdate(
+      req.params.id,
+      { isRead: true },
+      { new: true }
+    );
+
+    if (!message) {
+      return res.status(404).json({
+        message: "Message not found",
+      });
+    }
+
+    res.json(message);
 
   } catch (error) {
 
