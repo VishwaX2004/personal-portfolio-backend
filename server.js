@@ -13,6 +13,7 @@ import UserRouter from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import { getQualifications } from "./controllers/qualificationController.js";
+import { getSectionOrder } from "./controllers/sectionOrderController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,6 +72,9 @@ app.use("/api/upload", uploadRoutes);
 
 // Get all qualifications (education + certificates) - public endpoint
 app.get("/api/qualifications", getQualifications);
+
+// Get section order - public endpoint
+app.get("/api/section-order", getSectionOrder);
 
 // Legacy education endpoint - kept for backward compatibility
 app.get("/api/education", getQualifications);

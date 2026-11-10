@@ -2,7 +2,7 @@ import Project from '../models/projects.js';
 
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
+    const projects = await Project.find().sort({ globalOrder: 1, createdAt: -1 });
     res.status(200).json(projects);
   } catch (error) {
     console.error('Get projects error:', error);
@@ -174,6 +174,40 @@ export const deleteProject = async (req, res) => {
     res.status(200).json({ message: 'Project deleted successfully', deletedCount: 1 });
   } catch (error) {
     console.error('Delete project error:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+export const reorderProjects = async (req, res) => {
+  try {
+    const { projects } = req.body;
+
+    if (!Array.isArray(projects)) {
+      return res.status(400).json({ message: 'projects must be an array' });
+    }
+
+    // Validate each item has id and globalOrder
+    for (const item of projects) {
+      if (!item.id || typeof item.globalOrder !== 'number') {
+        return res.status(400).json({ 
+          message: 'Each item must have id and globalOrder' 
+        });
+      }
+    }
+
+    // Bulk update all projects
+    const updates = projects.map(item =>
+      Project.findByIdAndUpdate(
+        item.id,
+        { globalOrder: item.globalOrder },
+        { returnDocument: 'after' }
+      )
+    );
+
+    const results = await Promise.all(updates);
+    res.status(200).json({ message: 'Projects reordered', projects: results });
+  } catch (error) {
+    console.error('Reorder projects error:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
