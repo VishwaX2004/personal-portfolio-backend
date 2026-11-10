@@ -6,17 +6,12 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseBucket = process.env.SUPABASE_BUCKET;
 
-// Log warnings if environment variables are missing
-const missingVars = [];
-if (!supabaseUrl) missingVars.push('SUPABASE_URL');
-if (!supabaseAnonKey) missingVars.push('SUPABASE_ANON_KEY');
-if (!supabaseBucket) missingVars.push('SUPABASE_BUCKET');
-
-if (missingVars.length > 0) {
-  console.warn('⚠️  Supabase environment variables not fully configured:');
-  missingVars.forEach(v => console.warn(`   - ${v} is missing`));
-  console.warn('   Upload endpoints will fail until these are set in .env');
-}
+// Log configuration status at startup
+console.log('=== Supabase Configuration Debug ===');
+console.log('SUPABASE_URL:', supabaseUrl ? '✓ Set' : '✗ Missing');
+console.log('SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓ Set' : '✗ Missing');
+console.log('SUPABASE_BUCKET:', supabaseBucket ? '✓ Set' : '✗ Missing');
+console.log('====================================');
 
 // Initialize client only if credentials are present, otherwise set to null
 let supabase = null;
