@@ -77,6 +77,17 @@ const projectSchema = new mongoose.Schema(
       default: false,
     },
 
+    order: {
+      type: Number,
+      default: 0
+    },
+
+    globalOrder: {
+      type: Number,
+      default: 0,
+      index: true
+    },
+
     status: {
       type: String,
       enum: [

@@ -36,6 +36,11 @@ const qualificationSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  globalOrder: {
+    type: Number,
+    default: 0,
+    index: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

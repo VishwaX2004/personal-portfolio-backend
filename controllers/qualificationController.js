@@ -2,7 +2,8 @@ import Qualification from '../models/qualification.js';
 
 export const getQualifications = async (req, res) => {
   try {
-    const qualifications = await Qualification.find().sort({ createdAt: -1 });
+    const qualifications = await Qualification.find()
+      .sort({ globalOrder: 1, type: 1, createdAt: -1 });
     res.status(200).json(qualifications);
   } catch (error) {
     console.error('Get qualifications error:', error);
@@ -123,6 +124,40 @@ export const deleteQualification = async (req, res) => {
     res.status(200).json({ message: 'Qualification deleted successfully' });
   } catch (error) {
     console.error('Delete qualification error:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+export const reorderQualifications = async (req, res) => {
+  try {
+    const { qualifications } = req.body;
+
+    if (!Array.isArray(qualifications)) {
+      return res.status(400).json({ message: 'qualifications must be an array' });
+    }
+
+    // Validate each item has id and globalOrder
+    for (const item of qualifications) {
+      if (!item.id || typeof item.globalOrder !== 'number') {
+        return res.status(400).json({ 
+          message: 'Each item must have id and globalOrder' 
+        });
+      }
+    }
+
+    // Bulk update all qualifications
+    const updates = qualifications.map(item =>
+      Qualification.findByIdAndUpdate(
+        item.id,
+        { globalOrder: item.globalOrder },
+        { returnDocument: 'after' }
+      )
+    );
+
+    const results = await Promise.all(updates);
+    res.status(200).json({ message: 'Qualifications reordered', qualifications: results });
+  } catch (error) {
+    console.error('Reorder qualifications error:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
