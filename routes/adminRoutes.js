@@ -6,6 +6,7 @@ import { getEducation, createEducation, updateEducation, deleteEducation } from 
 import { getQualifications, createQualification, updateQualification, deleteQualification, reorderQualifications } from '../controllers/qualificationController.js';
 import { getMessages, deleteMessage, markAsRead } from '../controllers/messageController.js';
 import { getDisplaySettings, updateDisplaySettings } from '../controllers/displaySettingsController.js';
+import { getSectionOrder, updateSectionOrder } from '../controllers/sectionOrderController.js';
 
 const router = express.Router();
 
@@ -38,6 +39,10 @@ router.delete('/qualifications/:id', deleteQualification);
 // Display settings routes
 router.get('/display-settings', getDisplaySettings);
 router.put('/display-settings', updateDisplaySettings);
+
+// Section order routes
+router.get('/section-order', getSectionOrder);
+router.put('/section-order', updateSectionOrder);
 
 // Message routes
 router.get('/messages', getMessages);
